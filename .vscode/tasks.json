@@ -6,16 +6,16 @@
 		{
 			"label": "build",
 			"type": "shell",
-			"command": "make autojobs=true",
+			"command": "make",
 			"problemMatcher": [
 				"$gcc"
 			],
 			"group": "build"
 		},
 		{
-			"label": "build_dbg",
+			"label": "build-dev",
 			"type": "shell",
-			"command": "make config=dbg autojobs=true",
+			"command": "make config=dev",
 			"problemMatcher": [
 				"$gcc"
 			],
@@ -31,16 +31,30 @@
 		{
 			"label": "test_",
 			"type": "shell",
-			"command": "make test autojobs=true",
+			"command": "make test",
 			"dependsOn": "build",
 			"problemMatcher": [],
 			"group": "build"
 		},
 		{
-			"label": "test_dbg",
+			"label": "test-dev",
 			"type": "shell",
-			"command": "make test config=dbg autojobs=true",
-			"dependsOn": "build_dbg",
+			"command": "make test config=dev",
+			"dependsOn": "build-dev",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "format",
+			"type": "shell",
+			"command": "make format",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "lint",
+			"type": "shell",
+			"command": "make config=lint && make config=lint test",
 			"problemMatcher": [],
 			"group": "build"
 		}

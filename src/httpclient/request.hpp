@@ -72,7 +72,13 @@ class request : public std::enable_shared_from_this<request>
 public:
 	request(decltype(completed_handler)&& ch);
 
-	~request() noexcept;
+	request(const request&) = delete;
+	request& operator=(const request&) = delete;
+
+	request(request&&) = delete;
+	request& operator=(request&&) = delete;
+
+	~request();
 
 	void start();
 

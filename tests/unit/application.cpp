@@ -12,6 +12,6 @@ public:
 };
 }
 
-tst::application_factory app_fac([](){
+const tst::application_factory app_fac([](){
     return std::make_unique<application>();
 });

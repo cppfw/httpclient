@@ -37,12 +37,14 @@ using namespace httpclient;
 
 decltype(init_guard::instance) init_guard::instance;
 
+// TODO: refactor to avoid non-const globals, perhaps make them static vars of some class
 namespace {
-std::thread thread;
-std::atomic_bool quit_flag;
-nitki::queue queue;
-CURLM* multi_handle = nullptr;
-std::map<CURL*, std::shared_ptr<request>> handle_to_request_map;
+std::thread thread; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::atomic_bool quit_flag; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+nitki::queue queue; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+CURLM* multi_handle = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::map<CURL*, std::shared_ptr<request>>
+	handle_to_request_map; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 } // namespace
 
 namespace {
@@ -60,9 +62,10 @@ status_code curlcode_to_status(CURLcode code)
 }
 } // namespace
 
-void init_guard::handle_completed_request(const void* CURLMsg_message)
+void init_guard::handle_completed_request(const void* curlmsg_message)
 {
-	const CURLMsg& m = *reinterpret_cast<const CURLMsg*>(CURLMsg_message);
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
+	const CURLMsg& m = *reinterpret_cast<const CURLMsg*>(curlmsg_message);
 	switch (m.msg) {
 		case CURLMSG_DONE:
 			{
@@ -74,12 +77,16 @@ void init_guard::handle_completed_request(const void* CURLMsg_message)
 				handle_to_request_map.erase(i);
 				r->is_idle = true;
 
-				long response_code;
+				long response_code{};
 				curl_easy_getinfo(r->CURL_handle, CURLINFO_RESPONSE_CODE, &response_code);
 				r->resp.status = httpmodel::status(response_code);
 
 				if (r->completed_handler) {
-					r->completed_handler(curlcode_to_status(m.data.result), *r);
+					r->completed_handler(
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access, "use of third party library libcurl")
+						curlcode_to_status(m.data.result), //
+						*r
+					);
 				}
 				break;
 			}
@@ -98,27 +105,39 @@ void init_guard::thread_func()
 			m();
 		}
 
-		int num_active_sockets;
+		int num_active_sockets{};
 		curl_multi_perform(multi_handle, &num_active_sockets);
 
 		// handle completed requests
-		CURLMsg* msg;
+		CURLMsg* msg = nullptr;
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while, "TODO: refactor to avoid do{}while()")
 		do {
-			int num_messages_left;
+			int num_messages_left{};
 			msg = curl_multi_info_read(multi_handle, &num_messages_left);
 			if (msg) {
 				init_guard::handle_completed_request(msg);
 			}
 		} while (msg);
 
-		long timeout;
+		long timeout{};
+
+		constexpr auto default_timeout_ms = 1000;
 
 		curl_multi_timeout(multi_handle, &timeout);
 		if (timeout < 0) { // no set timeout, use default
-			timeout = 1000;
+			timeout = default_timeout_ms;
+		} else {
+			using std::min;
+			timeout = min(timeout, decltype(timeout)(default_timeout_ms));
 		}
 
-		CURLMcode rc = curl_multi_poll(multi_handle, nullptr, 0, timeout, nullptr);
+		CURLMcode rc = curl_multi_poll(
+			multi_handle, //
+			nullptr,
+			0,
+			int(timeout),
+			nullptr
+		);
 
 		if (rc != CURLM_OK) {
 			utki::log([](auto& o) {
@@ -147,7 +166,7 @@ bool init_guard::cancel_request(request& r)
 {
 	// TRACE(<< "cancelling request..." << std::endl)
 	nitki::semaphore sema;
-	bool ret;
+	bool ret = false;
 	queue.push_back([&r, &sema, &ret]() {
 		auto i = handle_to_request_map.find(r.CURL_handle);
 		if (i == handle_to_request_map.end()) {
@@ -182,7 +201,7 @@ init_guard::init_guard(bool init_winsock)
 	thread = std::thread(&thread_func);
 }
 
-init_guard::~init_guard() noexcept
+init_guard::~init_guard()
 {
 	quit_flag.store(true);
 	ASSERT(multi_handle)

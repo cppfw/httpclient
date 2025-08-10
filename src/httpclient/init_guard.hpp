@@ -43,11 +43,18 @@ class init_guard : public utki::intrusive_singleton<init_guard>
 	bool cancel_request(request& r);
 
 	static void thread_func();
-	static void handle_completed_request(const void* CURLMsg_message);
+	static void handle_completed_request(const void* curlmsg_message);
 
 public:
 	init_guard(bool init_winsock = true);
-	~init_guard() noexcept;
+
+	init_guard(const init_guard&) = delete;
+	init_guard& operator=(const init_guard&) = delete;
+
+	init_guard(init_guard&&) = delete;
+	init_guard& operator=(init_guard&&) = delete;
+
+	~init_guard() override;
 };
 
 } // namespace httpclient

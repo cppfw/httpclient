@@ -34,16 +34,22 @@ using namespace httpclient;
 
 size_t request::write_data(void* buffer, size_t size, size_t nmemb, void* userp)
 {
-	ASSERT(userp)
+	utki::assert(userp, SL);
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
 	auto r = reinterpret_cast<request*>(userp);
 
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
 	auto s = utki::make_span(reinterpret_cast<uint8_t*>(buffer), nmemb);
 
 	if (r->data_handler) {
 		return r->data_handler(s);
 	} else {
 		r->resp.body.reserve(r->resp.body.size() + s.size());
-		r->resp.body.insert(r->resp.body.end(), s.begin(), s.end());
+		r->resp.body.insert(
+			r->resp.body.end(), //
+			s.begin(),
+			s.end()
+		);
 		return s.size();
 	}
 }
@@ -61,7 +67,7 @@ request::request(decltype(completed_handler)&& ch) :
 	curl_easy_setopt(this->CURL_handle, CURLOPT_FOLLOWLOCATION, 1);
 }
 
-request::~request() noexcept
+request::~request()
 {
 	ASSERT(this->is_idle)
 	curl_easy_cleanup(this->CURL_handle);
@@ -103,6 +109,7 @@ void request::free_headers() noexcept
 {
 	ASSERT(this->is_idle)
 	if (this->curl_slist_handle) {
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
 		curl_slist_free_all(reinterpret_cast<curl_slist*>(this->curl_slist_handle));
 	}
 }
@@ -121,7 +128,11 @@ void request::set_headers(const std::map<std::string, std::string>& name_value, 
 		if (!nv.second.empty()) {
 			ss << " " << nv.second;
 		}
-		auto res = curl_slist_append(reinterpret_cast<curl_slist*>(this->curl_slist_handle), ss.str().c_str());
+		auto res = curl_slist_append(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
+			reinterpret_cast<curl_slist*>(this->curl_slist_handle), //
+			ss.str().c_str()
+		);
 		if (res) {
 			this->curl_slist_handle = res;
 		}
@@ -130,7 +141,11 @@ void request::set_headers(const std::map<std::string, std::string>& name_value, 
 	for (auto& n : name) {
 		std::stringstream ss;
 		ss << n << ";";
-		auto res = curl_slist_append(reinterpret_cast<curl_slist*>(this->curl_slist_handle), ss.str().c_str());
+		auto res = curl_slist_append(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
+			reinterpret_cast<curl_slist*>(this->curl_slist_handle), //
+			ss.str().c_str()
+		);
 		if (res) {
 			this->curl_slist_handle = res;
 		}

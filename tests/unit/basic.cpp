@@ -12,7 +12,7 @@
 #include "../../src/httpclient/init_guard.hpp"
 
 namespace{
-tst::set set("basic", [](tst::suite& suite){
+const tst::set set("basic", [](tst::suite& suite){
     suite.add(
         "basic_request",
         [](){
@@ -65,7 +65,7 @@ tst::set set("basic", [](tst::suite& suite){
             auto r = std::make_shared<httpclient::request>([&](httpclient::status_code sc, httpclient::request& req){
                 completed = true;
                 auto r = req.get_response();
-                LOG([&](auto&o){
+                utki::log_debug([&](auto&o){
                     o << "HTTP request completed, status = " << unsigned(sc);
                     o << ", http code = " << unsigned(r.status) << std::endl;
                 });
@@ -73,12 +73,12 @@ tst::set set("basic", [](tst::suite& suite){
                 sema.signal();
             });
 
-            r->set_url("https://testfile.org/files-5GB");
+            r->set_url("http://212.183.159.230/1GB.zip");
 
             bool sema_signalled = false;
 
             r->set_data_handler([&sema, &sema_signalled](utki::span<const uint8_t> d) -> size_t {
-                LOG([&](auto&o){
+                utki::log_debug([&](auto&o){
                     o << "first data chunk received, " << d.size() << " bytes, cancelling the request..." << std::endl;
                     o << utki::make_string(d) << std::endl;
                 });
@@ -89,12 +89,13 @@ tst::set set("basic", [](tst::suite& suite){
                 return d.size();
             });
 
-            LOG([](auto&o){o << "running cancel test..." << std::endl;});
+            utki::log_debug([](auto&o){o << "running cancel test..." << std::endl;});
             r->start();
 
             sema.wait();
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            constexpr auto delay_ms = 50;
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 
             tst::check(!completed, SL) << "req_status = " << unsigned(req_status);
             tst::check(r->cancel(), SL);
@@ -102,10 +103,11 @@ tst::set set("basic", [](tst::suite& suite){
 
             sema_signalled = false; // allow signalling on data received
 
-            LOG([](auto&o){o << "waiting 1 second to check the request was cancelled and no more data is received" << std::endl;});
-            auto wait_res = sema.wait(1000);
+            utki::log_debug([](auto&o){o << "waiting 1 second to check the request was cancelled and no more data is received" << std::endl;});
+            constexpr auto wait_timeout_ms = 1000;
+            auto wait_res = sema.wait(wait_timeout_ms);
             tst::check(!wait_res, SL);
-            LOG([](auto&o){o << "cancel test completed" << std::endl;});
+            utki::log_debug([](auto&o){o << "cancel test completed" << std::endl;});
 
             // since we are cancelling the requet, we expect that request completed handler was not called,
             // so the request status should remain undefined

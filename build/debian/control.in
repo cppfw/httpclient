@@ -2,17 +2,22 @@ Source: libhttpclient
 Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
-Build-Depends: debhelper (>= 9), prorab, prorab-extra, myci, pkg-config,
-		libc6-dev,
-		libssl-dev,
-		zlib1g-dev,
-		libutki-dev,
-		libnitki-dev,
-		libtst-dev,
-		libhttpmodel-dev,
-		libcurl4-openssl-dev,
-		clang-tidy,
-		clang-format
+Build-Depends:
+	debhelper (>= 9),
+	prorab,
+	prorab-extra,
+	myci,
+	pkg-config,
+	libc6-dev,
+	libssl-dev,
+	zlib1g-dev,
+	libutki-dev,
+	libnitki-dev,
+	libtst-dev,
+	libhttpmodel-dev,
+	libcurl4-openssl-dev,
+	clang-tidy,
+	clang-format
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.2
 
