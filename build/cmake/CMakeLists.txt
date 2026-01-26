@@ -24,4 +24,5 @@ myci_declare_library(${PROJECT_NAME}
         utki
         httpmodel
         nitki
+        CURL::libcurl
 )
