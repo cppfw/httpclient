@@ -32,7 +32,12 @@ SOFTWARE.
 
 using namespace httpclient;
 
-size_t request::write_data(void* buffer, size_t size, size_t nmemb, void* userp)
+size_t request::write_data(
+	void* buffer, //
+	size_t /* size */,
+	size_t nmemb,
+	void* userp
+)
 {
 	utki::assert(userp, SL);
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
