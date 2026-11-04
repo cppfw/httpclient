@@ -35,7 +35,7 @@ const tst::set set("basic", [](tst::suite& suite){
 
             completed.wait();
 
-            tst::check(req_status == httpclient::status_code::ok, SL) << "status = " << unsigned(req_status);
+            tst::check(req_status == httpclient::status_code::ok, [&](auto& o){o << "status = " << unsigned(req_status);}, SL);
 
             LOG([&](auto&o){o << "body.size() = " << data.size() << std::endl;});
             LOG([&](auto&o){o << utki::make_string(data) << std::endl;});
@@ -97,9 +97,9 @@ const tst::set set("basic", [](tst::suite& suite){
             constexpr auto delay_ms = 50;
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 
-            tst::check(!completed, SL) << "req_status = " << unsigned(req_status);
+            tst::check(!completed, [&](auto& o){o << "req_status = " << unsigned(req_status);}, SL);
             tst::check(r->cancel(), SL);
-            tst::check(!completed, SL) << "req_status = " << unsigned(req_status);
+            tst::check(!completed, [&](auto& o){o << "req_status = " << unsigned(req_status);}, SL);
 
             sema_signalled = false; // allow signalling on data received
 
@@ -111,7 +111,7 @@ const tst::set set("basic", [](tst::suite& suite){
 
             // since we are cancelling the requet, we expect that request completed handler was not called,
             // so the request status should remain undefined
-            tst::check(req_status == httpclient::status_code::undefined, SL) << "req_status = " << unsigned(req_status);
+            tst::check(req_status == httpclient::status_code::undefined, [&](auto& o){o << "req_status = " << unsigned(req_status);}, SL);
         }
     );
 
@@ -146,14 +146,14 @@ const tst::set set("basic", [](tst::suite& suite){
 
             completed.wait();
 
-            tst::check(req_status == httpclient::status_code::ok, SL) << "req_status = " << unsigned(req_status);
+            tst::check(req_status == httpclient::status_code::ok, [&](auto& o){o << "req_status = " << unsigned(req_status);}, SL);
             tst::check(resp_code.has_value(), SL);
-            tst::check(resp_code.value() == httpmodel::status::http_200_ok, SL) << "http_code = " << unsigned(resp_code.value());
+            tst::check(resp_code.value() == httpmodel::status::http_200_ok, [&](auto& o){o << "http_code = " << unsigned(resp_code.value());}, SL);
 
             auto resp_str = utki::make_string(data);
 
-            tst::check_ne(resp_str.find(custom_header_value), std::string::npos, SL)
-                    << "expected string not found in response body: " << resp_str;
+            tst::check_ne(resp_str.find(custom_header_value), std::string::npos, [&](auto& o){o
+                    << "expected string not found in response body: " << resp_str;}, SL);
 
             LOG([&](auto&o){o << "body.size() = " << data.size() << std::endl;});
             LOG([&](auto&o){o << resp_str << std::endl;});
