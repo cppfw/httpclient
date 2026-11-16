@@ -72,7 +72,7 @@ void init_guard::handle_completed_request(const void* curlmsg_message)
 				CURL* handle = m.easy_handle;
 				curl_multi_remove_handle(multi_handle, handle);
 				auto i = handle_to_request_map.find(handle);
-				ASSERT(i != handle_to_request_map.end())
+				utki::assert(i != handle_to_request_map.end(), SL);
 				auto r = std::move(i->second);
 				handle_to_request_map.erase(i);
 				r->is_idle = true;
@@ -91,9 +91,13 @@ void init_guard::handle_completed_request(const void* curlmsg_message)
 				break;
 			}
 		default:
-			ASSERT(false, [&](auto& o) {
-				o << "m.msg = " << m.msg;
-			})
+			utki::assert(
+				false,
+				[&](auto& o) {
+					o << "m.msg = " << m.msg;
+				},
+				SL
+			);
 			break;
 	}
 }
@@ -204,7 +208,7 @@ init_guard::init_guard(bool init_winsock)
 init_guard::~init_guard()
 {
 	quit_flag.store(true);
-	ASSERT(multi_handle)
+	utki::assert(multi_handle, SL);
 	curl_multi_wakeup(multi_handle);
 	thread.join();
 }

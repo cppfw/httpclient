@@ -74,7 +74,7 @@ request::request(decltype(completed_handler)&& ch) :
 
 request::~request()
 {
-	ASSERT(this->is_idle)
+	utki::assert(this->is_idle, SL);
 	curl_easy_cleanup(this->CURL_handle);
 	this->free_headers();
 }
@@ -112,7 +112,7 @@ void request::set_data_handler(decltype(data_handler)&& handler)
 
 void request::free_headers() noexcept
 {
-	ASSERT(this->is_idle)
+	utki::assert(this->is_idle, SL);
 	if (this->curl_slist_handle) {
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "type erasure")
 		curl_slist_free_all(reinterpret_cast<curl_slist*>(this->curl_slist_handle));
