@@ -73,7 +73,7 @@ const tst::set set("basic", [](tst::suite& suite){
                 sema.signal();
             });
 
-            r->set_url("http://212.183.159.230/1GB.zip");
+            r->set_url("https://proof.ovh.net/files/1Gb.dat");
 
             bool sema_signalled = false;
 
