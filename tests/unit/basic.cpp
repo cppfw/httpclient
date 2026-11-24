@@ -73,7 +73,7 @@ const tst::set set("basic", [](tst::suite& suite){
                 sema.signal();
             });
 
-            r->set_url("http://speedtest.tele2.net/1GB.zip");
+            r->set_url("http://izdelie.icu/1GB.zip");
 
             bool sema_signalled = false;
 
